@@ -1,30 +1,13 @@
+import "dotenv/config";
 import app from "./app.ts";
+import prisma from "./lib/prisma.ts";
 import type { Product } from "./types/index.ts";
+import router from "./modules/auth/auth.routes.ts";
+import { authRoutes } from "./modules/auth/index";
 
-const PORT = 5000;
+const PORT = process.env.PORT;
 
-app.get("/", (req, res) => {
-  res.send("Home");
-});
-
-app.get("/api/products", (req, res) => {
-  res.status(200).json(products);
-});
-
-app.post("/api/products", (req, res) => {
-  const newProduct: Product = {
-    id: products.length + 1,
-    name: req.body.name,
-    price: req.body.price,
-  };
-
-  products.push(newProduct);
-});
-
-const products = [
-  { id: 1, name: "Sepatu Running", price: 500000 },
-  { id: 2, name: "Kaos Polos", price: 0 },
-];
+app.use("/api/auth", authRoutes);
 
 app.listen(PORT, () => {
   console.log(`Listening on PORT ${PORT}`);

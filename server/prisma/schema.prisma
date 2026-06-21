@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generate/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// =========================================================================
+// 1. MODUL USER & AUTHENTICATION
+// Mengelola data pengguna (Pelanggan & Admin)
+// =========================================================================
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CUSTOMER) // CUSTOMER atau ADMIN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relasi ke modul Pesanan (Satu user bisa punya banyak pesanan)
+  orders Order[]
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+// =========================================================================
+// 2. MODUL KATALOG PRODUK
+// Mengelola data barang yang dijual
+// =========================================================================
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String   @db.Text
+  price       Int
+  stock       Int
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relasi ke tabel penghubung Detail Pesanan
+  orderItems OrderItem[]
+}
+
+// =========================================================================
+// 3. MODUL PESANAN & TRANSAKSI (ORDER)
+// Mengelola keranjang yang dicheckout dan riwayat belanja
+// =========================================================================
+model Order {
+  id         Int         @id @default(autoincrement())
+  userId     Int
+  totalPrice Int
+  status     OrderStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  // Relasi (Order terhubung ke User)
+  user User @relation(fields: [userId], references: [id])
+
+  // Relasi ke item-item produk yang dibeli
+  items OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  CANCELLED
+}
+
+// Tabel Penghubung (Pivot) antara Order dan Produk (Many-to-Many)
+// Karena dalam 1 pesanan bisa ada banyak produk, dan 1 produk bisa dibeli di banyak pesanan berbeda
+model OrderItem {
+  id           Int @id @default(autoincrement())
+  orderId      Int
+  productId    Int
+  quantity     Int // Jumlah barang yang dibeli
+  priceAtOrder Int // Mengunci harga barang saat transaksi terjadi (antisipasi jika harga produk berubah di masa depan)
+
+  // Relasi
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
