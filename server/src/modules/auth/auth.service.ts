@@ -3,6 +3,7 @@ import { User } from "../../generate/prisma/client";
 import prisma from "../../lib/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { UserWithoutPassword } from "../../types";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
@@ -33,7 +34,7 @@ export const AuthService = {
   async login(
     email: string,
     password: string,
-  ): Promise<{ user: Omit<User, "password">; token: string }> {
+  ): Promise<{ user: UserWithoutPassword; token: string }> {
     // Find user by email
     const user = await prisma.user.findUnique({
       where: {
@@ -81,5 +82,13 @@ export const AuthService = {
     const deletedAccount = await prisma.user.delete({ where: { email } });
 
     return deletedAccount;
+  },
+
+  async getUsers(): Promise<UserWithoutPassword[]> {
+    const users = await prisma.user.findMany();
+    const usersWithoutPassword = users.map(
+      ({ password, ...safeUser }) => safeUser,
+    );
+    return usersWithoutPassword;
   },
 };

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { AuthService } from "./auth.service";
+import { AuthService } from "./auth.service.ts";
 
 export const AuthController = {
   async register(req: Request, res: Response) {
@@ -35,6 +35,18 @@ export const AuthController = {
       return res.status(200).json({ result });
     } catch (error: any) {
       return res.status(400).json({ message: error.message });
+    }
+  },
+
+  async getUsers(req: Request, res: Response) {
+    try {
+      const users = await AuthService.getUsers();
+      res.status(200).json({ success: true, users });
+    } catch (error: any) {
+      console.log(error.message);
+      res
+        .status(400)
+        .json({ success: false, message: "Gagal mengambil users" });
     }
   },
 };

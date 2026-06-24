@@ -3,6 +3,7 @@ import { AuthController } from "./auth.controller";
 
 const router = Router();
 
+router.get("/", AuthController.getUsers);
 router.post("/register", AuthController.register);
 router.post("/login", AuthController.login);
 router.post("/delete-account", AuthController.deleteAccount);
